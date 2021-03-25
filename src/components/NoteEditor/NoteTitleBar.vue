@@ -28,14 +28,9 @@
 <template>
 
 <script>
-import * as React from 'react';
-import { _ } from '@joplin/lib/locale';
 import CommandService from '@joplin/lib/services/CommandService';
-import { ChangeEvent, useCallback } from 'react';
-import NoteToolbar from '../../NoteToolbar/NoteToolbar';
-import { buildStyle } from '@joplin/lib/theme';
-import time from '@joplin/lib/time';
-import styled from 'styled-components';
+import NoteToolbar from './NoteToolbar';
+import time from './utils/time';
 
 const StyledRoot = styled.div`
 	display: flex;
@@ -150,174 +145,47 @@ export default function NoteTitleBar(props: Props) {
 	);
 }
 
-import NoteToolbar from './NoteToolbar';
 
-const StyledRoot = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	padding-left: ${props => props.theme.editorPaddingLeft}px;
-
-	@media (max-width: 800px) {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-`;
-
-const InfoGroup = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-
-	@media (max-width: 800px) {
-		border-top: 1px solid ${props => props.theme.dividerColor};
-		width: 100%;
-	}
-`;
-
-interface Props {
-	themeId: number;
-	noteUserUpdatedTime: number;
-	noteTitle: string;
-	noteIsTodo: number;
-	isProvisional: boolean;
-	titleInputRef: any;
-	onTitleChange(event: ChangeEvent<HTMLInputElement>): void;
+function title_changeText(text: string) {
+	shared.noteComponent_change(this, 'title', text);
+	this.setState({ newAndNoTitleChangeNoteId: null });
+	this.scheduleSave();
 }
 
-function styles_(props: Props) {
-	return buildStyle(['NoteEditorTitleBar'], props.themeId, (theme: any) => {
-		return {
-			titleInput: {
-				flex: 1,
-				display: 'inline-block',
-				paddingTop: 5,
-				minHeight: 38,
-				boxSizing: 'border-box',
-				fontWeight: 'bold',
-				paddingBottom: 5,
-				paddingLeft: 0,
-				paddingRight: 8,
-				color: theme.textStyle.color,
-				fontSize: Math.round(theme.textStyle.fontSize * 1.5),
-				backgroundColor: theme.backgroundColor,
-				border: 'none',
-				width: '100%',
-			},
+const titleComp = (
+	<View style={titleContainerStyle}>
+		// {isTodo && <Checkbox style={this.styles().checkbox} checked={!!Number(note.todo_completed)} onChange={this.todoCheckbox_change} />}
+		<TextInput
+			onContentSizeChange={this.titleTextInput_contentSizeChange}
+			multiline={this.enableMultilineTitle_}
+			ref="titleTextField"
+			autoCapitalize="sentences"
+			value={note.title}
+			onChangeText={this.title_changeText}
+			placeholder={_('Add title')}
+		/>
+	</View>
+);
 
-			titleDate: {
-				...theme.textStyle,
-				color: theme.colorFaded,
-				paddingLeft: 8,
-				whiteSpace: 'nowrap',
-			},
-			toolbarStyle: {
-				marginBottom: 0,
-			},
-		};
-	});
-}
-*/
+const noteTagDialog = !this.state.noteTagDialogShown ? null : <NoteTagsDialog onCloseRequested={this.noteTagDialog_closeRequested} />;
 
-export default function NoteTitleBar(props) {
-	// const styles = styles_(props);
+return (
+	<View style={this.rootStyle(this.props.themeId).root}>
+		<ScreenHeader
+			folderPickerOptions={this.folderPickerOptions()}
+			menuOptions={this.menuOptions()}
+		/>
 
-	/*
-	const onTitleKeydown = useCallback((event: any) => {
-		const keyCode = event.keyCode;
+		<SelectDateTimeDialog themeId={this.props.themeId} shown={this.state.alarmDialogShown} date={dueDate} onAccept={this.onAlarmDialogAccept} onReject={this.onAlarmDialogReject} />
 
-		if (keyCode === 9) { // TAB
-			event.preventDefault();
-
-			if (event.shiftKey) {
-				void CommandService.instance().execute('focusElement', 'noteList');
-			} else {
-				void CommandService.instance().execute('focusElement', 'noteBody');
-			}
-		}
-	}, []);
-	*/
-
-	/*
-	function renderTitleBarDate() {
-		return <span style={styles.titleDate}>{time.formatMsToLocal(props.noteUserUpdatedTime)}</span>;
-	}
-	*/
-
-	/*
-	function renderNoteToolbar() {
-		return <NoteToolbar
-			themeId={props.themeId}
-			style={styles.toolbarStyle}
-		/>;
-	}
-	*/
-
-	/*
-	return (
-		<StyledRoot>
-			<input
-				type="text"
-				ref={props.titleInputRef}
-				placeholder={props.isProvisional ? _('Creating new %s...', props.noteIsTodo ? _('to-do') : _('note')) : ''}
-				style={styles.titleInput}
-				onChange={props.onTitleChange}
-				onKeyDown={onTitleKeydown}
-				value={props.noteTitle}
-			/>
-			<InfoGroup>
-				{renderTitleBarDate()}
-				{renderNoteToolbar()}
-			</InfoGroup>
-		</StyledRoot>
-	);
-	*/
-}
-
-
-	function title_changeText(text: string) {
-		shared.noteComponent_change(this, 'title', text);
-		this.setState({ newAndNoTitleChangeNoteId: null });
-		this.scheduleSave();
-	}
-
-
-		const titleComp = (
-			<View style={titleContainerStyle}>
-				// {isTodo && <Checkbox style={this.styles().checkbox} checked={!!Number(note.todo_completed)} onChange={this.todoCheckbox_change} />}
-				<TextInput
-					onContentSizeChange={this.titleTextInput_contentSizeChange}
-					multiline={this.enableMultilineTitle_}
-					ref="titleTextField"
-					autoCapitalize="sentences"
-					value={note.title}
-					onChangeText={this.title_changeText}
-					placeholder={_('Add title')}
-				/>
-			</View>
-		);
-
-		const noteTagDialog = !this.state.noteTagDialogShown ? null : <NoteTagsDialog onCloseRequested={this.noteTagDialog_closeRequested} />;
-
-		return (
-			<View style={this.rootStyle(this.props.themeId).root}>
-				<ScreenHeader
-					folderPickerOptions={this.folderPickerOptions()}
-					menuOptions={this.menuOptions()}
-				/>
-
-				<SelectDateTimeDialog themeId={this.props.themeId} shown={this.state.alarmDialogShown} date={dueDate} onAccept={this.onAlarmDialogAccept} onReject={this.onAlarmDialogReject} />
-
-				<DialogBox
-					ref={(dialogbox: any) => {
-						this.dialogbox = dialogbox;
-					}}
-				/>
-				{noteTagDialog}
-			</View>
-		);
-
-
+		<DialogBox
+			ref={(dialogbox: any) => {
+				this.dialogbox = dialogbox;
+			}}
+		/>
+		{noteTagDialog}
+	</View>
+);
 
 
 </script>

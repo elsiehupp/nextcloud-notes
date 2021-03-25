@@ -54,7 +54,7 @@ export default class Note extends BaseItem {
 	}
 	*/
 
-	/*
+
 	static minimalSerializeForDisplay(note: NoteEntity) {
 		const n = Object.assign({}, note);
 
@@ -82,7 +82,7 @@ export default class Note extends BaseItem {
 
 		return super.serialize(n, fieldNames);
 	}
-	*/
+
 
 	static defaultTitle(noteBody: string) {
 		return this.defaultTitleFromBody(noteBody);
