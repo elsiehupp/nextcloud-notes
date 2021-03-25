@@ -6,11 +6,21 @@
 			:class="{ fullscreen: fullscreen }"
 		>
 			<div class="note-editor">
+				<NoteTitleBar
+					titleInputRef={titleInputRef}
+					themeId={props.themeId}
+					isProvisional={props.isProvisional}
+					noteIsTodo={formNote.is_todo}
+					noteTitle={formNote.title}
+					noteUserUpdatedTime={formNote.user_updated_time}
+					onTitleChange={onTitleChange}
+				/>
 				<div v-show="!note.content" class="placeholder">
 					{{ preview ? t('notes', 'Empty note') : t('notes', 'Write …') }}
 				</div>
 				<ThePreview v-if="preview" :value="note.content" />
 				<TheEditor v-else :value="note.content" @input="onEdit" />
+				<NoteTagBar>
 			</div>
 			<span class="action-buttons">
 				<Actions :open.sync="actionsOpen" container=".action-buttons" menu-align="right">
@@ -46,6 +56,80 @@
 </template>
 <script>
 
+
+function constructor() {
+		super();
+		this.state = {
+			note: Note.new(),
+			mode: 'view',
+			folder: null,
+			lastSavedNote: null,
+			isLoading: true,
+			titleTextInputHeight: 20,
+			alarmDialogShown: false,
+			heightBumpView: 0,
+			noteTagDialogShown: false,
+			fromShare: false,
+			showCamera: false,
+			noteResources: {},
+
+			undoRedoButtonState: {
+				canUndo: false,
+				canRedo: false,
+			},
+		};
+
+		this.noteTagDialog_closeRequested = () => {
+			this.setState({ noteTagDialogShown: false });
+		};
+
+
+function renderResourceWatchingNotification() {
+		if (!Object.keys(props.watchedResources).length) return null;
+		const resourceTitles = Object.keys(props.watchedResources).map(id => props.watchedResources[id].title);
+		return (
+			<div style={styles.resourceWatchBanner}>
+				<p style={styles.resourceWatchBannerLine}>{_('The following attachments are being watched for changes:')} <strong>{resourceTitles.join(', ')}</strong></p>
+				<p style={{ ...styles.resourceWatchBannerLine, marginBottom: 0 }}>{_('The attachments will no longer be watched when you switch to a different note.')}</p>
+			</div>
+		);
+	}
+
+
+	function renderSearchInfo() {
+		const theme = themeStyle(props.themeId);
+		if (formNoteFolder && ['Search', 'Tag', 'SmartFilter'].includes(props.notesParentType)) {
+			return (
+				<div style={{ paddingTop: 10, paddingBottom: 10, paddingLeft: theme.editorPaddingLeft }}>
+					<Button
+						iconName="icon-notebooks"
+						level={ButtonLevel.Primary}
+						title={_('In: %s', substrWithEllipsis(formNoteFolder.title, 0, 100))}
+						onClick={() => {
+							props.dispatch({
+								type: 'FOLDER_AND_NOTE_SELECT',
+								folderId: formNoteFolder.id,
+								noteId: formNote.id,
+							});
+						}}
+					/>
+					<div style={{ flex: 1 }}></div>
+				</div>
+			);
+		} else {
+			return null;
+		}
+	}
+	}
+
+
+
+
+
+
+
+
+
 import {
 	Actions,
 	ActionButton,
@@ -58,8 +142,10 @@ import { emit } from '@nextcloud/event-bus'
 
 import { config } from '../config'
 import { fetchNote, refreshNote, saveNote, saveNoteManually, autotitleNote, routeIsNewNote } from '../NotesService'
+import NoteTitleBar from './NoteEditor/NoteTitleBar'
 import TheEditor from './EditorEasyMDE'
 import ThePreview from './EditorMarkdownIt'
+import NoteTagBar from './NoteEditor/NoteTagBar'
 import store from '../store'
 
 export default {
@@ -69,8 +155,10 @@ export default {
 		Actions,
 		ActionButton,
 		AppContent,
+		NoteTitleBar,
 		TheEditor,
 		ThePreview,
+		NoteTagBar,
 	},
 
 	directives: {
